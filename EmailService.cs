@@ -1,5 +1,6 @@
 ﻿
 using MimeKit;
+using MailKit.Net.Smtp;
 
 namespace EmailServiceDemo
 {
@@ -11,7 +12,7 @@ namespace EmailServiceDemo
             _settings = settings;
         }
 
-        public Task<bool> SendEmailAsync(string toEmail, string subject, string message)
+        public async Task<bool> SendEmailAsync(string toEmail, string subject, string message)
         {
             try
             {
@@ -24,11 +25,19 @@ namespace EmailServiceDemo
                 var multipart = new Multipart() { body };
                 email.Body = multipart;
 
-
+                using var client = new SmtpClient();
+                await client.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort, true);
+                await client.AuthenticateAsync(_settings.SmtpAddress, _settings.SmtpPassword);
+                await client.SendAsync(email);
+                await client.DisconnectAsync(false);
+                return true;
 
             }
-            catch { }
-            throw new NotImplementedException();
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
         }
     }
 }
