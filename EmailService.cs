@@ -21,7 +21,10 @@ namespace EmailServiceDemo
                 email.To.Add(new MailboxAddress("", toEmail));
 
                 email.Subject = subject;
-                var body = new TextPart("plain");
+                var body = new TextPart("plain")
+                {
+                    Text = message
+                };
                 var multipart = new Multipart() { body };
                 email.Body = multipart;
 
