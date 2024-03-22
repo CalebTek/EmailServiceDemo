@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmailServiceDemo.Controllers
 {
@@ -63,10 +64,31 @@ namespace EmailServiceDemo.Controllers
             }
         }
 
-        //[HttpPost("confirm-email")]
-        //public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
-        //{
+        [HttpPost("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
+        {
+            try
+            {
+                // Find user by token
+                var user =  await _context.Users.FirstOrDefaultAsync(u => u.ConfirmationToken == token);
 
-        //}
+                if (user == null)
+                {
+                    return BadRequest("Invalid token or user not found");
+                }
+
+                // confirm email by updating EmailConfirmed status
+                user.EmailConfirmed = true;
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+
+                return Ok("Email confirmed successfully");
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occured while confirming email: {ex.Message}");
+            }
+        }
     }
 }
